@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://spqnc-website.eroots2025.workers.dev/sitemap.xml
