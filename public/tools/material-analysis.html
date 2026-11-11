@@ -3,81 +3,133 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Material Analysis (prototype) | SPQnC Consultant</title>
+<title>Brickwork Material Calculator (Beta) | SPQnC Consultant</title>
+<meta name="description" content="Estimate bricks, cement and sand for brickwork from wall area. Every step is shown.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/styles.css">
-<style>
-.tool{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:2rem}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem}
-.tool fieldset{border:1px solid var(--line);padding:.8rem 1rem 1rem;margin:0 0 1rem}
-.tool legend{font:600 1.05rem var(--serif);color:var(--navy);padding:0 .4rem}
-.res{width:100%;border-collapse:collapse}
-.res th,.res td{padding:.5rem .4rem;border-bottom:1px solid var(--line);text-align:left}
-.res .n{text-align:right;font-variant-numeric:tabular-nums}
-.warn{background:#fff6e0;border-left:4px solid var(--gold);padding:.7rem 1rem;margin:0 0 1rem}
-.err{color:#b00020;font-weight:600}
-.row-btns{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
-@media(max-width:800px){.tool{grid-template-columns:1fr}}
-@media print{.site-header,.inputs,.row-btns,.site-footer{display:none}.tool{display:block}}
-</style>
+<link rel="stylesheet" href="../css/tool.css">
 </head>
 <body>
-<header class="site-header"><div class="wrap bar">
-  <a class="brand" href="../index.html"><img src="../assets/emblem.png" alt="" width="44" height="46"><span>SPQnC Consultant</span></a>
-  <a href="../index.html">Back to site</a>
-</div></header>
-<main class="section"><div class="wrap">
-<h1>Material Analysis</h1>
-<p class="warn"><strong>Prototype for checking only.</strong> Formulas come from the client's demo Excel (brickwork in mortar). Verify every result against your own calculation before using it in an estimate or bill. Rates are typed by you and kept only in this browser.</p>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="../index.html" aria-label="SPQnC Consultant home">
+      <img src="../assets/emblem.png" alt="" width="44" height="46"><span>SPQnC Consultant</span>
+    </a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav id="nav" class="nav" aria-label="Main">
+      <a href="../index.html#services">Services</a>
+      <a href="../index.html#process">How we work</a>
+      <a href="../about.html">About</a>
+      <a href="material-analysis.html" aria-current="page">Calculator</a>
+      <a href="../index.html#contact" class="btn btn-gold">Get a quote</a>
+    </nav>
+  </div>
+</header>
 
-<div class="tool">
-<form class="inputs" onsubmit="return false" autocomplete="off">
-  <fieldset><legend>Brickwork, wall thickness = brick width</legend>
-    <div class="grid2">
-      <label for="areaSqm">Wall area (sqm)</label><input id="areaSqm" type="number" step="any" min="0" value="10">
-      <label for="brickL">Brick length (mm)</label><input id="brickL" type="number" step="any" min="0" value="230">
-      <label for="brickW">Brick width (mm)</label><input id="brickW" type="number" step="any" min="0" value="100">
-      <label for="brickH">Brick height (mm)</label><input id="brickH" type="number" step="any" min="0" value="75">
-      <label for="joint">Mortar joint (mm)</label><input id="joint" type="number" step="any" min="0" value="10">
-    </div>
-  </fieldset>
-  <fieldset><legend>Mortar</legend>
-    <div class="grid2">
-      <label for="ratio">Mix 1 : (sand)</label><input id="ratio" type="number" step="any" min="0" value="4">
-      <label for="dryPct">Dry volume added (%)</label><input id="dryPct" type="number" step="any" min="0" value="33">
-      <label for="wastePct">Wastage etc. added (%)</label><input id="wastePct" type="number" step="any" min="0" value="20">
-      <label for="bagVolume">Cement bag (cum)</label><input id="bagVolume" type="number" step="any" min="0" value="0.035">
-    </div>
-  </fieldset>
-  <fieldset><legend>Rates (optional, Rs)</legend>
-    <div class="grid2">
-      <label for="rBrick">Brick, per nos</label><input id="rBrick" type="number" step="any" min="0">
-      <label for="rCement">Cement, per bag</label><input id="rCement" type="number" step="any" min="0">
-      <label for="rSand">Sand, per cum</label><input id="rSand" type="number" step="any" min="0">
-    </div>
-  </fieldset>
-</form>
-
-<section aria-live="polite">
-  <h2>Result</h2>
-  <p id="msg" class="err"></p>
-  <table class="res" id="res"><thead><tr><th>Material</th><th class="n">Quantity</th><th>Unit</th><th class="n">Rate</th><th class="n">Amount (Rs)</th></tr></thead><tbody></tbody></table>
-  <p id="total"></p>
-  <h3>Working</h3>
-  <ul id="work"></ul>
-  <div class="row-btns"><button class="btn btn-gold" id="csv" type="button">Download CSV</button><button class="btn btn-line" style="color:var(--navy);border-color:var(--navy)" id="print" type="button">Print</button></div>
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <span class="tag">Beta</span>
+    <h1>Brickwork material calculator</h1>
+    <p class="lead">Estimate the bricks, cement and sand for brick masonry from the wall area. Every step is shown, so you can check it.</p>
+  </div>
 </section>
+
+<div class="wrap">
+<div class="calc">
+
+  <form class="card inputs" onsubmit="return false" autocomplete="off">
+    <h2>Your wall</h2>
+    <div class="field"><label for="areaSqm">Wall area</label>
+      <div class="inp"><input id="areaSqm" type="number" step="any" min="0" value="10"><span>sqm</span></div></div>
+    <div class="field"><label for="ratio">Mortar mix (cement : sand)</label>
+      <div class="inp"><select id="ratio"><option value="3">1 : 3</option><option value="4" selected>1 : 4</option><option value="5">1 : 5</option><option value="6">1 : 6</option></select></div></div>
+
+    <h3>Brick size (actual, mm)</h3>
+    <div class="three">
+      <div class="field"><label for="brickL">Length</label><div class="inp"><input id="brickL" type="number" step="any" min="0" value="230"></div></div>
+      <div class="field"><label for="brickW">Width</label><div class="inp"><input id="brickW" type="number" step="any" min="0" value="100"></div></div>
+      <div class="field"><label for="brickH">Height</label><div class="inp"><input id="brickH" type="number" step="any" min="0" value="75"></div></div>
+    </div>
+    <p class="hint">Wall thickness is taken as the brick width (100 mm wall).</p>
+
+    <details>
+      <summary>Advanced assumptions</summary>
+      <div class="field"><label for="joint">Mortar joint</label><div class="inp"><input id="joint" type="number" step="any" min="0" value="10"><span>mm</span></div></div>
+      <div class="field"><label for="dryPct">Added for dry volume of mortar</label><div class="inp"><input id="dryPct" type="number" step="any" min="0" value="33"><span>%</span></div></div>
+      <div class="field"><label for="wastePct">Added for wastage and filling</label><div class="inp"><input id="wastePct" type="number" step="any" min="0" value="20"><span>%</span></div></div>
+      <div class="field"><label for="bagVolume">Volume of one cement bag</label><div class="inp"><input id="bagVolume" type="number" step="any" min="0" value="0.035"><span>cum</span></div></div>
+    </details>
+
+    <details>
+      <summary>Add rates for a cost estimate (optional)</summary>
+      <div class="field"><label for="rBrick">Brick, per nos</label><div class="inp"><span>Rs</span><input id="rBrick" type="number" step="any" min="0"></div></div>
+      <div class="field"><label for="rCement">Cement, per bag</label><div class="inp"><span>Rs</span><input id="rCement" type="number" step="any" min="0"></div></div>
+      <div class="field"><label for="rSand">Sand, per cum</label><div class="inp"><span>Rs</span><input id="rSand" type="number" step="any" min="0"></div></div>
+      <p class="hint">Rates stay in your browser. They are not sent anywhere.</p>
+    </details>
+  </form>
+
+  <section class="card" aria-live="polite">
+    <h2>Material required</h2>
+    <p id="msg" class="err"></p>
+    <div class="stats">
+      <div class="stat"><span class="stat-label">Bricks</span><span class="stat-num" id="sBricks">-</span><span class="stat-unit">nos</span></div>
+      <div class="stat"><span class="stat-label">Cement</span><span class="stat-num" id="sCement">-</span><span class="stat-unit">bags</span></div>
+      <div class="stat"><span class="stat-label">Sand</span><span class="stat-num" id="sSand">-</span><span class="stat-unit">cum</span></div>
+    </div>
+
+    <table class="res" id="res">
+      <thead><tr><th scope="col">Material</th><th scope="col" class="n">Quantity</th><th scope="col">Unit</th><th scope="col" class="n">Rate (Rs)</th><th scope="col" class="n">Amount (Rs)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="total" id="total"></p>
+
+    <details>
+      <summary>How this was calculated</summary>
+      <ol class="work" id="work"></ol>
+    </details>
+
+    <div class="row-btns">
+      <button class="btn btn-gold" id="csv" type="button">Download CSV</button>
+      <button class="btn btn-outline" id="print" type="button">Print</button>
+    </div>
+    <p class="notice"><strong>Estimate only.</strong> Based on standard assumptions and the figures you enter. Check it against your drawings and specification. It does not replace a measured quantity take-off.</p>
+  </section>
+
 </div>
-</div></main>
+</div>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>Need a full take-off, BOQ or bill check?</h2>
+    <p>Send us your drawings and we will measure, price and check them for you.</p>
+    <p><a class="btn btn-gold" href="../index.html#contact">Request a quote</a></p>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <img src="../assets/logo-full.png" alt="SPQnC Consultant: Precision today. Value tomorrow." width="140" height="140" loading="lazy">
+    <p>&copy; <span id="year">2026</span> SPQnC Consultant, Pune. <a class="flink" href="../privacy.html">Privacy</a></p>
+  </div>
+</footer>
 
 <script src="../js/calc.js"></script>
+<script src="../js/main.js"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var num = function (id) { var v = $(id).value; return v === '' ? NaN : Number(v); };
   var fmt = function (n, d) { return n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d }); };
   var rateIds = ['rBrick', 'rCement', 'rSand'], rows = [];
+  var MISS = '<span class="miss">add rate</span>';
 
   try { rateIds.forEach(function (id) { var v = localStorage.getItem('mat_' + id); if (v) { $(id).value = v; } }); } catch (e) {}
 
@@ -87,34 +139,41 @@
       joint: num('joint') / 1000, ratio: num('ratio'), dryPct: num('dryPct'), wastePct: num('wastePct'), bagVolume: num('bagVolume')
     });
     var tb = $('res').tBodies[0]; tb.innerHTML = ''; rows = []; $('work').innerHTML = '';
-    if (!r.ok) { $('msg').textContent = 'Check the inputs: every field above needs a valid number.'; $('total').textContent = ''; return; }
+    if (!r.ok) {
+      $('msg').textContent = 'Please check the inputs: every field needs a valid number above zero.';
+      ['sBricks', 'sCement', 'sSand'].forEach(function (id) { $(id).textContent = '-'; });
+      $('total').textContent = ''; return;
+    }
     $('msg').textContent = '';
     try { rateIds.forEach(function (id) { localStorage.setItem('mat_' + id, $(id).value); }); } catch (e) {}
     var c = MaterialCalc.cost(r, { brick: num('rBrick'), cement: num('rCement'), sand: num('rSand') });
+    $('sBricks').textContent = fmt(r.bricksSay, 0);
+    $('sCement').textContent = fmt(r.cementBags, 2);
+    $('sSand').textContent = fmt(r.sandCum, 3);
     [['Bricks', r.bricksSay, 0, 'nos', c.lines.brick], ['Cement', r.cementBags, 2, 'bags', c.lines.cement], ['Sand', r.sandCum, 3, 'cum', c.lines.sand]].forEach(function (x) {
-      var rate = x[4].rate === null ? 'rate missing' : fmt(x[4].rate, 2), amt = x[4].amount === null ? 'rate missing' : fmt(x[4].amount, 2);
+      var rate = x[4].rate === null ? MISS : fmt(x[4].rate, 2), amt = x[4].amount === null ? MISS : fmt(x[4].amount, 2);
       tb.insertAdjacentHTML('beforeend', '<tr><td>' + x[0] + '</td><td class="n">' + fmt(x[1], x[2]) + '</td><td>' + x[3] + '</td><td class="n">' + rate + '</td><td class="n">' + amt + '</td></tr>');
       rows.push([x[0], x[1].toFixed(x[2]), x[3], x[4].rate === null ? '' : x[4].rate, x[4].amount === null ? '' : x[4].amount.toFixed(2)]);
     });
-    $('total').innerHTML = c.complete ? '<strong>Total material cost: Rs ' + fmt(c.total, 2) + '</strong>' : 'Total not shown until all three rates are entered.';
+    $('total').innerHTML = c.complete ? '<strong>Total material cost: Rs ' + fmt(c.total, 2) + '</strong>' : 'Enter all three rates to see a total cost.';
     var i = r.inputs, w = [
-      'Bricks = area / ((length + joint) x (height + joint)) = ' + fmt(r.bricksExact, 2) + ', rounded up to ' + r.bricksSay,
-      'Mortar area = area - bricks x face area = ' + fmt(r.mortarArea, 4) + ' sqm',
-      'Wet mortar = mortar area x wall thickness = ' + fmt(r.mortarWet, 4) + ' cum',
-      'Add ' + i.dryPct + '% dry volume, then ' + i.wastePct + '% wastage = ' + fmt(r.mortarTotal, 4) + ' cum',
-      'Cement = total / (1 + ' + i.ratio + ') = ' + fmt(r.cementCum, 4) + ' cum = ' + fmt(r.cementBags, 3) + ' bags of ' + i.bagVolume + ' cum',
-      'Sand = total x ' + i.ratio + ' / (1 + ' + i.ratio + ') = ' + fmt(r.sandCum, 4) + ' cum'
+      'Bricks = area / ((length + joint) x (height + joint)) = ' + fmt(r.bricksExact, 2) + ', rounded up to ' + r.bricksSay + '.',
+      'Mortar area = area - (bricks x brick face area) = ' + fmt(r.mortarArea, 4) + ' sqm.',
+      'Wet mortar = mortar area x wall thickness = ' + fmt(r.mortarWet, 4) + ' cum.',
+      'Add ' + i.dryPct + '% for dry volume, then ' + i.wastePct + '% for wastage = ' + fmt(r.mortarTotal, 4) + ' cum.',
+      'Cement = total / (1 + ' + i.ratio + ') = ' + fmt(r.cementCum, 4) + ' cum = ' + fmt(r.cementBags, 3) + ' bags of ' + i.bagVolume + ' cum.',
+      'Sand = total x ' + i.ratio + ' / (1 + ' + i.ratio + ') = ' + fmt(r.sandCum, 4) + ' cum.'
     ];
     $('work').innerHTML = w.map(function (t) { return '<li>' + t + '</li>'; }).join('');
   }
 
-  document.querySelectorAll('.inputs input').forEach(function (el) { el.addEventListener('input', run); });
+  document.querySelectorAll('.inputs input, .inputs select').forEach(function (el) { el.addEventListener('input', run); });
   $('print').addEventListener('click', function () { window.print(); });
   $('csv').addEventListener('click', function () {
     var lines = [['Material', 'Quantity', 'Unit', 'Rate', 'Amount']].concat(rows).map(function (r) { return r.join(','); });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
-    a.download = 'material-analysis.csv'; a.click();
+    a.download = 'material-calculation.csv'; a.click();
   });
   run();
 })();
