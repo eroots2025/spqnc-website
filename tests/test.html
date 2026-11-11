@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Calc tests</title>
+<style>body{font:16px/1.5 system-ui;margin:2rem}.pass{color:#0a7a2f}.fail{color:#b00020;font-weight:700}</style></head>
+<body><h1>Material calc tests</h1><ul id="out"></ul>
+<script src="../public/js/calc.js"></script>
+<script>
+var C = window.MaterialCalc, out = document.getElementById('out'), failed = 0;
+function close(a, b, tol) { return Math.abs(a - b) <= Math.abs(b) * (tol || 0.0002); }
+function test(name, fn) {
+  var li = document.createElement('li');
+  try { fn(); li.className = 'pass'; li.textContent = 'PASS: ' + name; }
+  catch (e) { failed++; li.className = 'fail'; li.textContent = 'FAIL: ' + name + ' (' + e.message + ')'; }
+  out.appendChild(li);
+}
+function eq(cond, msg) { if (!cond) { throw new Error(msg); } }
+
+// Expected values are the cached results in the client's Excel (Material Analysis sheet).
+// The Excel types 490.19 into one formula, so the tool differs by about 0.007%. Tolerance is 0.02%.
+test('Demo Excel: bricks say 491', function () { eq(C.brickwork({}).bricksSay === 491, 'got ' + C.brickwork({}).bricksSay); });
+test('Demo Excel: mortar wet volume 0.15442 cum', function () { var r = C.brickwork({}); eq(close(r.mortarWet, 0.15442225), 'got ' + r.mortarWet); });
+test('Demo Excel: total mortar 0.24646 cum', function () { var r = C.brickwork({}); eq(close(r.mortarTotal, 0.246457911), 'got ' + r.mortarTotal); });
+test('Demo Excel: cement 0.04929 cum', function () { var r = C.brickwork({}); eq(close(r.cementCum, 0.0492915822), 'got ' + r.cementCum); });
+test('Demo Excel: cement 1.408 bags', function () { var r = C.brickwork({}); eq(close(r.cementBags, 1.40833092), 'got ' + r.cementBags); });
+test('Demo Excel: sand 0.19717 cum', function () { var r = C.brickwork({}); eq(close(r.sandCum, 0.1971663288), 'got ' + r.sandCum); });
+test('Area doubles, quantities double', function () { var a = C.brickwork({}), b = C.brickwork({ areaSqm: 20 }); eq(close(b.cementBags, a.cementBags * 2, 1e-9), 'cement'); eq(close(b.sandCum, a.sandCum * 2, 1e-9), 'sand'); });
+test('Mix 1:6: cement is one seventh of mortar', function () { var r = C.brickwork({ ratio: 6 }); eq(close(r.cementCum, r.mortarTotal / 7, 1e-9), 'cement'); });
+test('Cement plus sand equals total mortar', function () { var r = C.brickwork({}); eq(close(r.cementCum + r.sandCum, r.mortarTotal, 1e-9), 'sum'); });
+test('Bad input is rejected, not calculated', function () { eq(C.brickwork({ areaSqm: -5 }).ok === false, 'accepted -5'); eq(C.brickwork({ ratio: 'x' }).ok === false, 'accepted text'); });
+test('Missing rate gives null, never zero', function () { var c = C.cost(C.brickwork({}), { brick: 10 }); eq(c.lines.cement.amount === null && c.total === null, 'not null'); });
+test('Cost with all rates adds up', function () { var r = C.brickwork({}), c = C.cost(r, { brick: 10, cement: 400, sand: 2000 });
+  eq(close(c.total, 491 * 10 + r.cementBags * 400 + r.sandCum * 2000, 1e-9), 'total ' + c.total); });
+var s = document.createElement('h2'); s.textContent = failed ? failed + ' test(s) failed' : 'All tests passed'; s.className = failed ? 'fail' : 'pass'; document.body.insertBefore(s, out);
+</script></body></html>
