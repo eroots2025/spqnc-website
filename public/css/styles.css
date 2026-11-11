@@ -442,7 +442,6 @@ p {
   }
 }
 
-
 /* Text pages (About, Privacy, 404) */
 .prose {
   max-width: 760px;
@@ -467,4 +466,11 @@ p {
 
 .flink {
   color: #d9e2ec;
+}
+
+.form-status {
+  min-height: 1.5em;
+  margin: 0.6rem 0 0;
+  font-weight: 600;
+  color: var(--navy);
 }
