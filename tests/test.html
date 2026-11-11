@@ -29,5 +29,17 @@ test('Bad input is rejected, not calculated', function () { eq(C.brickwork({ are
 test('Missing rate gives null, never zero', function () { var c = C.cost(C.brickwork({}), { brick: 10 }); eq(c.lines.cement.amount === null && c.total === null, 'not null'); });
 test('Cost with all rates adds up', function () { var r = C.brickwork({}), c = C.cost(r, { brick: 10, cement: 400, sand: 2000 });
   eq(close(c.total, 491 * 10 + r.cementBags * 400 + r.sandCum * 2000, 1e-9), 'total ' + c.total); });
+
+var CSV = '\uFEFFid,category,material,unit,rate,rate_date\r\nM001,Cement,Cement,bag,280,2026-11-01\r\nM003,Sand,River Sand,cum,2998.8,2026-05-01\r\nM010,Brick,"Bricks(0.23x0.1x0.075), red",nos,6.5,\r\n,,,,,\r\nM011,Brick,No rate,nos,,2026-11-01\r\nM012,Brick,Negative,nos,-4,2026-11-01\r\n';
+test('Rate list: reads valid rows, skips blank, missing and negative rates', function () { var r = C.parseRates(CSV); eq(r.length === 3, 'rows ' + r.length); });
+test('Rate list: numbers and units are read correctly', function () { var r = C.parseRates(CSV); eq(r[0].rate === 280 && r[0].unit === 'bag' && r[1].rate === 2998.8, 'values'); });
+test('Rate list: a comma inside quotes stays in the name', function () { eq(C.parseRates(CSV)[2].material === 'Bricks(0.23x0.1x0.075), red', 'name'); });
+test('Rate list: header-only file gives an empty list', function () { eq(C.parseRates('id,category,material,unit,rate,rate_date\n').length === 0, 'not empty'); eq(C.parseRates('').length === 0, 'empty text'); });
+test('Rate age: counts days and handles missing dates', function () {
+  var today = new Date(2026, 10, 11);
+  eq(C.rateAgeDays('2026-11-01', today) === 10, 'age ' + C.rateAgeDays('2026-11-01', today));
+  eq(C.rateAgeDays('2026-05-01', today) === 194, 'old ' + C.rateAgeDays('2026-05-01', today));
+  eq(C.rateAgeDays('', today) === null && C.rateAgeDays('bad', today) === null, 'null');
+});
 var s = document.createElement('h2'); s.textContent = failed ? failed + ' test(s) failed' : 'All tests passed'; s.className = failed ? 'fail' : 'pass'; document.body.insertBefore(s, out);
 </script></body></html>

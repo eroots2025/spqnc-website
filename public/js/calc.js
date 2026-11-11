@@ -61,7 +61,47 @@
     return { lines: lines, total: total, complete: complete };
   }
 
-  var api = { DEFAULTS: DEFAULTS, brickwork: brickwork, cost: cost };
+
+  // Reads the published rate list (materials.csv saved from the Excel "Website export" sheet).
+  // Returns only rows that have an id, a material name and a numeric rate of 0 or more.
+  function parseRates(text) {
+    var rows = [], row = [], field = '', q = false, t = String(text || '').replace(/^\uFEFF/, '');
+    for (var k = 0; k < t.length; k++) {
+      var ch = t[k];
+      if (q) {
+        if (ch === '"') { if (t[k + 1] === '"') { field += '"'; k++; } else { q = false; } } else { field += ch; }
+      } else if (ch === '"') { q = true; }
+      else if (ch === ',') { row.push(field); field = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && t[k + 1] === '\n') { k++; }
+        row.push(field); field = ''; rows.push(row); row = [];
+      } else { field += ch; }
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    if (!rows.length) { return []; }
+    var head = rows[0].map(function (h) { return h.trim().toLowerCase(); });
+    var col = function (n) { return head.indexOf(n); };
+    var out = [];
+    rows.slice(1).forEach(function (r) {
+      var rate = r[col('rate')] === undefined || r[col('rate')].trim() === '' ? NaN : Number(r[col('rate')]);
+      var id = (r[col('id')] || '').trim(), name = (r[col('material')] || '').trim();
+      if (!id || !name || !isFinite(rate) || rate < 0) { return; }
+      out.push({ id: id, category: (r[col('category')] || '').trim(), material: name,
+                 unit: (r[col('unit')] || '').trim(), rate: rate, rateDate: (r[col('rate_date')] || '').trim() });
+    });
+    return out;
+  }
+
+  // Whole days between an ISO date (yyyy-mm-dd) and today. Returns null if the date is missing or invalid.
+  function rateAgeDays(iso, today) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) { return null; }
+    var d = Date.UTC(+m[1], +m[2] - 1, +m[3]);
+    var n = today || new Date();
+    return Math.floor((Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) - d) / 86400000);
+  }
+
+  var api = { DEFAULTS: DEFAULTS, brickwork: brickwork, cost: cost, parseRates: parseRates, rateAgeDays: rateAgeDays };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; }
   root.MaterialCalc = api;
 })(typeof window !== 'undefined' ? window : globalThis);

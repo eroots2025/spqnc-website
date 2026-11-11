@@ -68,10 +68,17 @@
 
     <details>
       <summary>Add rates for a cost estimate (optional)</summary>
-      <div class="field"><label for="rBrick">Brick, per nos</label><div class="inp"><span>Rs</span><input id="rBrick" type="number" step="any" min="0"></div></div>
-      <div class="field"><label for="rCement">Cement, per bag</label><div class="inp"><span>Rs</span><input id="rCement" type="number" step="any" min="0"></div></div>
-      <div class="field"><label for="rSand">Sand, per cum</label><div class="inp"><span>Rs</span><input id="rSand" type="number" step="any" min="0"></div></div>
-      <p class="hint">Rates stay in your browser. They are not sent anywhere.</p>
+      <p class="hint" id="rateInfo">Type your own rates below.</p>
+      <div class="field"><label for="rBrick">Brick, per nos</label>
+        <select id="pBrick" class="pick" hidden></select>
+        <div class="inp"><span>Rs</span><input id="rBrick" type="number" step="any" min="0"></div><p class="rate-note" id="nBrick"></p></div>
+      <div class="field"><label for="rCement">Cement, per bag</label>
+        <select id="pCement" class="pick" hidden></select>
+        <div class="inp"><span>Rs</span><input id="rCement" type="number" step="any" min="0"></div><p class="rate-note" id="nCement"></p></div>
+      <div class="field"><label for="rSand">Sand, per cum</label>
+        <select id="pSand" class="pick" hidden></select>
+        <div class="inp"><span>Rs</span><input id="rSand" type="number" step="any" min="0"></div><p class="rate-note" id="nSand"></p></div>
+      <p class="hint">Rates you type stay in your browser. Rates from the list are shared by the site.</p>
     </details>
   </form>
 
@@ -175,6 +182,44 @@
     a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
     a.download = 'material-calculation.csv'; a.click();
   });
+
+  // Rate list: choose a material and its rate fills in. You can still type over it.
+  var kinds = [
+    { cat: 'brick', unit: 'nos', sel: 'pBrick', inp: 'rBrick', note: 'nBrick' },
+    { cat: 'cement', unit: 'bag', sel: 'pCement', inp: 'rCement', note: 'nCement' },
+    { cat: 'sand', unit: 'cum', sel: 'pSand', inp: 'rSand', note: 'nSand' }
+  ];
+  var STALE_DAYS = 90; // working assumption: confirm with the client
+
+  function loadRateList() {
+    fetch('../data/materials.csv', { cache: 'no-cache' })
+      .then(function (res) { return res.ok ? res.text() : Promise.reject(); })
+      .then(function (text) {
+        var list = MaterialCalc.parseRates(text), any = false;
+        kinds.forEach(function (k) {
+          var items = list.filter(function (x) { return x.category.toLowerCase() === k.cat && x.unit.toLowerCase() === k.unit; });
+          if (!items.length) { return; }
+          any = true;
+          var sel = $(k.sel);
+          sel.innerHTML = '<option value="">Choose from rate list</option>' + items.map(function (x, n) {
+            return '<option value="' + n + '">' + x.material + ' (Rs ' + fmt(x.rate, 2) + ')</option>'; }).join('');
+          sel.hidden = false;
+          sel.addEventListener('change', function () {
+            var note = $(k.note);
+            if (sel.value === '') { note.textContent = ''; note.className = 'rate-note'; return; }
+            var x = items[Number(sel.value)], age = MaterialCalc.rateAgeDays(x.rateDate);
+            $(k.inp).value = x.rate;
+            if (age === null) { note.textContent = 'Rate date not recorded. Please check this rate.'; note.className = 'rate-note old'; }
+            else if (age > STALE_DAYS) { note.textContent = 'Rate dated ' + x.rateDate + ' (' + age + ' days old). Please check it.'; note.className = 'rate-note old'; }
+            else { note.textContent = 'Rate dated ' + x.rateDate + '.'; note.className = 'rate-note'; }
+            run();
+          });
+          $(k.inp).addEventListener('input', function () { sel.value = ''; $(k.note).textContent = ''; });
+        });
+        if (any) { $('rateInfo').textContent = 'Pick a material from the rate list, or type your own rate.'; }
+      }).catch(function () {});
+  }
+  loadRateList();
   run();
 })();
 </script>
